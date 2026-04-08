@@ -1,0 +1,12 @@
+[project]
+name = "job-screener-env"
+version = "1.0.0"
+description = "Job screening environment"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic",
+    "requests",
+    "openai",
+    "openenv-core"
+]
