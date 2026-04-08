@@ -1,6 +1,0 @@
-[project]
-name = "job-screener-env"
-version = "1.0.0"
-
-[project.scripts]
-server = "server.app:app"
