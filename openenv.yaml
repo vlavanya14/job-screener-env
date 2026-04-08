@@ -1,0 +1,23 @@
+name: job-screener-env
+version: "1.0.0"
+description: >
+  An AI agent environment for screening job applications.
+  The agent reads candidate profiles and decides: shortlist, reject, or escalate to human review.
+  Tasks range from screening a single obvious candidate to handling complex edge cases with conflicting signals.
+author: "participant"
+tags:
+  - recruitment
+  - hr
+  - screening
+  - real-world
+  - productivity
+tasks:
+  - name: easy_screen
+    description: Screen a single clearly qualified or unqualified candidate
+    difficulty: easy
+  - name: medium_screen
+    description: Screen 5 mixed candidates with varying qualifications
+    difficulty: medium
+  - name: hard_screen
+    description: Screen 10 candidates with tricky edge cases and conflicting signals
+    difficulty: hard

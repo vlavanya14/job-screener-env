@@ -1,0 +1,116 @@
+# STEP-BY-STEP GUIDE — Read this first!
+# =========================================================
+# Total time needed: ~2-3 hours
+# =========================================================
+
+STEP 1 — INSTALL PREREQUISITES (30 min)
+----------------------------------------
+a) Install Docker Desktop:
+   https://www.docker.com/products/docker-desktop/
+   (Download, install, open it, wait for it to start)
+
+b) Install Python packages (open terminal/cmd):
+   pip install fastapi uvicorn pydantic openai requests openenv-core
+
+c) Create a Hugging Face account:
+   https://huggingface.co → Sign Up (free)
+   Then go to: huggingface.co/new-space
+     - Space name: job-screener-env
+     - SDK: Docker
+     - Visibility: Public
+     - Click Create Space
+
+
+STEP 2 — TEST LOCALLY (20 min)
+--------------------------------
+Open terminal in THIS folder and run:
+
+   uvicorn app:app --host 0.0.0.0 --port 7860
+
+Then open another terminal and test:
+
+   curl -X POST http://localhost:7860/reset \
+     -H "Content-Type: application/json" \
+     -d '{"task": "easy_screen"}'
+
+You should see a JSON response with a candidate. ✅
+
+
+STEP 3 — TEST DOCKER LOCALLY (20 min)
+---------------------------------------
+In terminal (in this folder):
+
+   docker build -t job-screener-env .
+   docker run -p 7860:7860 job-screener-env
+
+Then test again:
+   curl -X POST http://localhost:7860/reset \
+     -H "Content-Type: application/json" \
+     -d '{"task": "easy_screen"}'
+
+If it works → Docker is ready ✅
+
+
+STEP 4 — RUN INFERENCE (10 min)
+---------------------------------
+While Docker is running, open another terminal:
+
+   set HF_TOKEN=your_huggingface_token    (Windows)
+   export HF_TOKEN=your_huggingface_token  (Mac/Linux)
+
+   set ENV_URL=http://localhost:7860       (Windows)
+   export ENV_URL=http://localhost:7860    (Mac/Linux)
+
+   python inference.py
+
+You should see [START] [STEP] [END] logs printed. ✅
+Copy the scores into README.md under "Baseline Scores".
+
+
+STEP 5 — DEPLOY TO HUGGING FACE (30 min)
+------------------------------------------
+a) Install git and git-lfs:
+   https://git-scm.com/downloads
+   git lfs install
+
+b) Clone your HF Space (replace YOUR_USERNAME):
+   git clone https://huggingface.co/spaces/YOUR_USERNAME/job-screener-env
+   cd job-screener-env
+
+c) Copy ALL files from this folder into the cloned folder
+
+d) Push to HF:
+   git add .
+   git commit -m "Initial submission"
+   git push
+
+e) Go to your HF Space page → click "Logs" tab
+   Wait 3-5 minutes for it to build.
+   When you see "Running" → your space is live! ✅
+
+
+STEP 6 — VALIDATE (15 min)
+-----------------------------
+Your HF Space URL will be:
+   https://YOUR_USERNAME-job-screener-env.hf.space
+
+Run the validator:
+   ./validate-submission.sh https://YOUR_USERNAME-job-screener-env.hf.space .
+
+All 3 checks must say PASSED. ✅
+Then submit your HF Space URL to the hackathon!
+
+
+COMMON ERRORS
+--------------
+❌ "docker: command not found"
+   → Docker Desktop is not running. Open the app and wait for it to start.
+
+❌ curl returns connection refused
+   → The server isn't running. Run: uvicorn app:app --host 0.0.0.0 --port 7860
+
+❌ HF Space shows "Building" for too long
+   → Check the Logs tab for errors. Usually a requirements.txt issue.
+
+❌ openenv validate fails
+   → Make sure openenv.yaml is in the root folder.
