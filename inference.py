@@ -69,7 +69,6 @@ Decision?"""
         return word if word in VALID_ACTIONS else "escalate"
     except Exception as e:
         print(f"[DEBUG] LLM error: {e}", flush=True)
-        # Fallback: simple rule-based decision
         if candidate['required_skills_match'] >= 0.75 and not candidate['overqualified']:
             return "shortlist"
         elif candidate['required_skills_match'] < 0.4:
@@ -81,7 +80,6 @@ Decision?"""
 def run_task(task: str) -> float:
     log_start(task, MODEL_NAME)
 
-    # Reset environment
     try:
         r = requests.post(f"{ENV_URL}/reset", json={"task": task}, timeout=30)
         result = r.json()
@@ -90,20 +88,24 @@ def run_task(task: str) -> float:
         log_end(False, 0, 0.0, [])
         return 0.0
 
-    obs = result["observation"]
+    obs = result.get("observation", {})
     done = result.get("done", False)
     rewards = []
     step = 0
 
     while not done:
-        candidate = obs["current_candidate"]
+        try:
+            candidate = obs["current_candidate"]
+        except:
+            break
+
         action = get_action(candidate, obs.get("job_requirements", ""))
         step += 1
 
         try:
             resp = requests.post(f"{ENV_URL}/step", json={
                 "action": action,
-                "candidate_id": candidate["id"],
+                "candidate_id": candidate.get("id"),
                 "reason": f"Automated decision: {action}",
                 "task": task,
             }, timeout=30)
@@ -127,13 +129,23 @@ def run_task(task: str) -> float:
     return score
 
 
-if __name__ == "__main__":
-    print(f"[DEBUG] Connecting to env at {ENV_URL}", flush=True)
-    all_scores = []
-    for task in TASKS:
-        score = run_task(task)
-        all_scores.append(score)
-        print(f"[DEBUG] {task} score: {score:.3f}", flush=True)
+def safe_exit():
+    print("[END] success=false steps=0 score=0.0 rewards=")
+    sys.exit(0)
 
-    overall = sum(all_scores) / len(all_scores)
-    print(f"[DEBUG] Overall average score: {overall:.3f}", flush=True)
+
+if __name__ == "__main__":
+    try:
+        print(f"[DEBUG] Connecting to env at {ENV_URL}", flush=True)
+        all_scores = []
+        for task in TASKS:
+            score = run_task(task)
+            all_scores.append(score)
+            print(f"[DEBUG] {task} score: {score:.3f}", flush=True)
+
+        overall = sum(all_scores) / len(all_scores)
+        print(f"[DEBUG] Overall average score: {overall:.3f}", flush=True)
+
+    except Exception as e:
+        print("[ERROR]", e, flush=True)
+        safe_exit()
